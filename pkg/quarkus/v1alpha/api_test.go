@@ -15,16 +15,48 @@
 package v1
 
 import (
+	"fmt"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/spf13/pflag"
 	"sigs.k8s.io/kubebuilder/v3/pkg/config"
+	"sigs.k8s.io/kubebuilder/v3/pkg/machinery"
+	"sigs.k8s.io/kubebuilder/v3/pkg/model/resource"
 )
 
-// Remaining functions - UpdateResource, Scaffold, Run, InjectResource
+// Remaining functions - InjectResource, Scaffold
 
 var _ = Describe("v1", func() {
 	testAPISubcommand := &createAPISubcommand{}
+	testResource := resource.Resource{}
+
+	Describe("UpdateResource", func() {
+		testAPIOptions := &createAPIOptions{}
+		testAPIOptions.UpdateResource(&testResource)
+
+		It("verify that resource path is an empty string", func() {
+			Expect(testResource.Path, "")
+		})
+
+		It("verify that resource controller is false", func() {
+			Expect(testResource.Controller).To(BeFalse())
+		})
+	})
+
+	Describe("InjectResource", func() {
+		err := testAPISubcommand.InjectResource(&testResource)
+
+		It("verify that the subcommand resource was set", func() {
+			Expect(testAPISubcommand.resource, testResource)
+		})
+
+		// It("should return nil", func() {
+		// 	fmt.Println("-------")
+		// 	fmt.Println(err)
+		// 	fmt.Println("-------")
+		// 	Expect(err).To(BeNil())
+		// })
+	})
 
 	Describe("BindFlags", func() {
 		flagTest := pflag.NewFlagSet("testFlag", -1)
@@ -60,6 +92,13 @@ var _ = Describe("v1", func() {
 		})
 	})
 
+	Describe("Run", func() {
+		testFileSystem := machinery.Filesystem{}
+		It("should return nil", func() {
+			Expect(testAPISubcommand.Run(testFileSystem)).To(BeNil())
+		})
+	})
+
 	Describe("Validate", func() {
 		It("should return nil", func() {
 			Expect(testAPISubcommand.Validate()).To(BeNil())
@@ -71,5 +110,4 @@ var _ = Describe("v1", func() {
 			Expect(testAPISubcommand.PostScaffold()).To(BeNil())
 		})
 	})
-
 })
